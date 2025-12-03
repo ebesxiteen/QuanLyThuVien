@@ -14,6 +14,8 @@ namespace DAO
 
         private readonly string connectionSTR;
 
+        public string ConnectionString => connectionSTR;
+
         private DataProvider()
         {
             try
@@ -54,6 +56,16 @@ namespace DAO
                 Debug.WriteLine($"[TestConnection] {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Tạo kết nối mới để dùng với ORM (Dapper/EF,...). Caller chịu trách nhiệm dispose.
+        /// </summary>
+        public MySqlConnection CreateConnection()
+        {
+            var connection = new MySqlConnection(connectionSTR);
+            connection.Open();
+            return connection;
         }
 
         /// <summary>
