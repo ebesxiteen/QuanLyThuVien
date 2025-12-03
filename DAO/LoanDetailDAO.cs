@@ -1,8 +1,7 @@
-﻿using DTO;
-using MySql.Data.MySqlClient;
-using System;
+using Dapper;
+using DTO;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 
 namespace DAO
 {
@@ -23,21 +22,9 @@ namespace DAO
 
         public List<LoanDetailDTO> GetLoanDetailsByLoanId(int maPhieuMuon)
         {
-            string query = "SELECT * FROM ChiTietMuon WHERE MaPhieuMuon = @MaPhieuMuon";
-            MySqlParameter[] parameters = {new MySqlParameter("@MaPhieuMuon", maPhieuMuon)
-};
-            DataTable dt = DataProvider.Instance.ExecuteQuery(query, parameters);
-            List<LoanDetailDTO> list = new List<LoanDetailDTO>();
-            foreach (DataRow row in dt.Rows)
-            {
-                list.Add(new LoanDetailDTO
-                {
-                    MaPhieuMuon = Convert.ToInt32(row["MaPhieuMuon"]),
-                    MaSach = Convert.ToInt32(row["MaSach"]),
-                    SoLuong = Convert.ToInt32(row["SoLuong"])
-                });
-            }
-            return list;
+            using var connection = DataProvider.Instance.CreateConnection();
+            const string query = "SELECT * FROM ChiTietMuon WHERE MaPhieuMuon = @MaPhieuMuon";
+            return connection.Query<LoanDetailDTO>(query, new { MaPhieuMuon = maPhieuMuon }).ToList();
         }
     }
 }
