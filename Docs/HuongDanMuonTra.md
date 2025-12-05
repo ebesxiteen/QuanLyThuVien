@@ -67,6 +67,34 @@
 - `ThamSoMuonTraDTO` (L70–76): gói các quy định hệ thống (số sách tối đa, ngày mượn tối đa, đơn giá phạt, tuổi giới hạn).
 - `DocGiaMuonInfoDTO` (L79–86): dữ liệu độc giả cần cho bước lập phiếu (ID, mã, họ tên, ngày sinh, hạn thẻ, tổng nợ hiện tại).
 
+### GUI (UserControl & Form)
+- **UCPhieuMuon.cs** (danh sách phiếu mượn):
+  - Khởi động `UCPhieuMuon_Load` (L26–51) cấu hình DataGridView, gắn event nút (xem/trả/xóa) và gọi `LoadData` để lấy danh sách từ `MuonTraBUS.LayTatCaPhieuMuon` (L76–86).
+  - Bộ lọc `ApplyFilters` (L96–139) tìm theo từ khóa, trạng thái "Đang mượn/Đã trả"; được gọi khi gõ ô tìm kiếm (L61–64) hoặc đổi combobox trạng thái (L66–69) và sau khi nạp dữ liệu.
+  - `KhoiTaoCheDoNguoiDung` (L151–171) đọc quyền từ `SessionManager`, ẩn/hiện nút thêm/xóa/trả, và nếu là độc giả thì chỉ hiển thị phiếu của riêng mình (lọc ngay trong `LoadData`).
+  - Nút **Thêm** gọi `MoFormThemPhieuMuon` (L141–149) → mở `FrmLapPhieuMuon`, nhận `PhieuMoi` đã tạo rồi thêm vào `BindingList` và báo mã phiếu mới.
+  - Nút **Gia hạn** trên lưới kích hoạt `DgvPhieuMuon_ExtendButtonClicked` (L246–251) → `GiaHanPhieuMuonDuocChon` (L173–192) mở `FrmGiaHanPhieuMuon` với phiếu đang chọn, sau khi gia hạn thì refresh dữ liệu hiển thị.
+  - Nút **Trả sách** trên lưới kích hoạt `DgvPhieuMuon_ReturnButtonClicked` (L253–258) → `TraPhieuMuonDuocChon` (L194–224) mở `FrmLapPhieuTra`, sau khi trả thành công đọc lại phiếu qua `MuonTraBUS.LayPhieuMuonTheoMa` để cập nhật số sách còn và hiện thông báo tiền phạt (nếu có).
+  - Nút **Xóa** kích hoạt `DgvPhieuMuon_DeleteButtonClicked` (L260–265) → `XoaPhieuMuonDuocChon` (L267–294) xác nhận, gọi `MuonTraBUS.XoaPhieuMuon`, rồi gỡ item khỏi danh sách và áp lại bộ lọc.
+  - Nút **Export/Import** (L301–339) dùng `MuonTraBUS.ExportPhieuMuonToExcel`/`ImportPhieuMuonFromExcel` để lưu/đọc Excel; sau khi import sẽ `LoadData` và báo số bản ghi thành công/thất bại.
+
+- **UCPhieuTra.cs** (danh sách phiếu trả):
+  - `UCPhieuTra_Load` (L26–45) cấu hình lưới, gắn event xem/xóa, gọi `LoadData` (L55–66) để lấy dữ liệu từ `MuonTraBUS.LayTatCaPhieuTra`, lọc theo độc giả đang đăng nhập nếu là người đọc.
+  - Hàm `Filter` (L73–89) lọc theo mã phiếu/độc giả; được gọi khi nhập ô tìm kiếm (L68–71) và sau khi `LoadData`.
+  - `KhoiTaoCheDoNguoiDung` (L138–155) ẩn/hiện nút lập phiếu trả, nút xóa và import/export dựa trên quyền.
+  - Nút **Lập phiếu trả** (L91–99) mở `FrmLapPhieuTra`; nếu trả thành công thì nạp lại danh sách.
+  - Nút **Xem** trên lưới (L101–108) mở `FrmChiTietPhieuTra` với DTO đã chọn.
+  - Nút **Xóa** (L110–136) xác nhận rồi gọi `MuonTraBUS.XoaPhieuTra`; sau khi xóa thành công nạp lại dữ liệu và báo người dùng.
+  - Nút **Export/Import** (L157–195) dùng BUS để xuất/nhập Excel tương tự phần phiếu mượn.
+
+- **FrmLapPhieuMuon.cs** (form tạo phiếu mượn): `InitializeComponent` (L23–116) dựng UI, thêm sự kiện nút "Thêm mã", "Thêm hàng loạt", "Xóa mã" để thao tác danh sách mã cuốn `_maCuon`. Nút **Tạo phiếu** (L80–104) lấy mã độc giả, danh sách `_maCuon`, hạn trả (nếu người dùng chỉnh) rồi gọi `MuonTraBUS.LapPhieuMuon`; nếu thành công thì đặt `DialogResult.OK` và gán `PhieuMoi` để `UCPhieuMuon` nhận.
+
+- **FrmGiaHanPhieuMuon.cs**: Nút **Lưu** (L18–34) đọc số ngày từ `numSoNgay`, gọi `MuonTraBUS.GiaHanPhieuMuon`, cập nhật `NgayTraDuKien` vào DTO gốc rồi trả `DialogResult.OK` cho `UCPhieuMuon` refresh.
+
+- **FrmLapPhieuTra.cs**: 
+  - `btnTaiPhieu_Click` (L37–60) nạp phiếu mượn theo mã từ textbox bằng `MuonTraBUS.LayPhieuMuonTheoMa`, hiển thị thông tin độc giả, hạn trả và `TinhTrang`, đồng thời tải chi tiết sách qua `MuonTraBUS.LayChiTietPhieuMuon` vào lưới.
+  - `btnTaoPhieu_Click` (L63–84) gọi `MuonTraBUS.LapPhieuTra` để trả sách, nhận tiền phạt và cập nhật trạng thái hiển thị; đặt `DialogResult.OK` để `UCPhieuMuon` biết cần refresh khi được mở từ nút Trả.
+
 ## Cách tìm nhanh trên code
 - Mở **BUS/MuonTraBUS.cs** để xem các bước kiểm tra và gọi DAO cho từng thao tác (mượn/gia hạn/trả/xóa/import/export).
 - Mở **DAO/MuonTraDAO.cs** để đọc truy vấn SQL và thấy transaction xử lý trạng thái cuốn sách.
