@@ -13,6 +13,7 @@ namespace DTO
         public int SoLuongCon { get; set; }
         public int MaNXB { get; set; }
         public int MaTheLoai { get; set; }
+        public string? TinhTrangSach { get; set; }
 
         public BookDTO()
         {
@@ -25,11 +26,12 @@ namespace DTO
             SoLuongCon = 0;
             MaNXB = 0;
             MaTheLoai = 0;
+            TinhTrangSach = "Mới";
         }
 
         public BookDTO(int maSach, string tieuDe, string isbn, int namXuatBan,
                        decimal giaSach, int soLuongTong, int soLuongCon,
-                       int maNXB, int maTheLoai)
+                       int maNXB, int maTheLoai, string? tinhTrangSach = "Mới")
         {
             MaSach = maSach;
             TieuDe = tieuDe;
@@ -40,6 +42,7 @@ namespace DTO
             SoLuongCon = soLuongCon;
             MaNXB = maNXB;
             MaTheLoai = maTheLoai;
+            TinhTrangSach = tinhTrangSach;
         }
     }
 }

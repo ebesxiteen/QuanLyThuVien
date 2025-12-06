@@ -36,6 +36,13 @@
             panel5 = new Panel();
             dgvLoanList = new DataGridView();
             panel3 = new Panel();
+            lblConditionBorrow = new Label();
+            cboTearLevel = new ComboBox();
+            chkLost = new CheckBox();
+            chkTorn = new CheckBox();
+            chkWet = new CheckBox();
+            chkDirty = new CheckBox();
+            chkNew = new CheckBox();
             btnDeleteLoan = new Button();
             btnCreateLoan = new Button();
             numQuantity = new NumericUpDown();
@@ -196,6 +203,13 @@
             panel3.Controls.Add(btnExtendLoan);
             panel3.Controls.Add(btnDeleteLoan);
             panel3.Controls.Add(btnCreateLoan);
+            panel3.Controls.Add(cboTearLevel);
+            panel3.Controls.Add(chkLost);
+            panel3.Controls.Add(chkTorn);
+            panel3.Controls.Add(chkWet);
+            panel3.Controls.Add(chkDirty);
+            panel3.Controls.Add(chkNew);
+            panel3.Controls.Add(lblConditionBorrow);
             panel3.Controls.Add(numQuantity);
             panel3.Controls.Add(dtDueDate);
             panel3.Controls.Add(dtBorrowDate);
@@ -211,16 +225,84 @@
             panel3.Name = "panel3";
             panel3.Size = new Size(350, 676);
             panel3.TabIndex = 1;
-            // 
+            //
+            // lblConditionBorrow
+            //
+            lblConditionBorrow.AutoSize = true;
+            lblConditionBorrow.Location = new Point(17, 246);
+            lblConditionBorrow.Name = "lblConditionBorrow";
+            lblConditionBorrow.Size = new Size(84, 20);
+            lblConditionBorrow.TabIndex = 15;
+            lblConditionBorrow.Text = "Tình trạng:";
+            //
+            // cboTearLevel
+            //
+            cboTearLevel.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboTearLevel.FormattingEnabled = true;
+            cboTearLevel.Location = new Point(207, 308);
+            cboTearLevel.Name = "cboTearLevel";
+            cboTearLevel.Size = new Size(129, 28);
+            cboTearLevel.TabIndex = 20;
+            //
+            // chkLost
+            //
+            chkLost.AutoSize = true;
+            chkLost.Location = new Point(123, 344);
+            chkLost.Name = "chkLost";
+            chkLost.Size = new Size(57, 24);
+            chkLost.TabIndex = 19;
+            chkLost.Text = "Mất";
+            chkLost.UseVisualStyleBackColor = true;
+            //
+            // chkTorn
+            //
+            chkTorn.AutoSize = true;
+            chkTorn.Location = new Point(123, 312);
+            chkTorn.Name = "chkTorn";
+            chkTorn.Size = new Size(63, 24);
+            chkTorn.TabIndex = 18;
+            chkTorn.Text = "Rách";
+            chkTorn.UseVisualStyleBackColor = true;
+            //
+            // chkWet
+            //
+            chkWet.AutoSize = true;
+            chkWet.Location = new Point(123, 280);
+            chkWet.Name = "chkWet";
+            chkWet.Size = new Size(63, 24);
+            chkWet.TabIndex = 17;
+            chkWet.Text = "Ướt";
+            chkWet.UseVisualStyleBackColor = true;
+            //
+            // chkDirty
+            //
+            chkDirty.AutoSize = true;
+            chkDirty.Location = new Point(207, 246);
+            chkDirty.Name = "chkDirty";
+            chkDirty.Size = new Size(59, 24);
+            chkDirty.TabIndex = 16;
+            chkDirty.Text = "Bẩn";
+            chkDirty.UseVisualStyleBackColor = true;
+            //
+            // chkNew
+            //
+            chkNew.AutoSize = true;
+            chkNew.Location = new Point(123, 246);
+            chkNew.Name = "chkNew";
+            chkNew.Size = new Size(58, 24);
+            chkNew.TabIndex = 15;
+            chkNew.Text = "Mới";
+            chkNew.UseVisualStyleBackColor = true;
+            //
             // btnDeleteLoan
-            // 
+            //
             btnDeleteLoan.BackColor = Color.Red;
             btnDeleteLoan.Cursor = Cursors.Hand;
             btnDeleteLoan.FlatAppearance.BorderSize = 0;
             btnDeleteLoan.FlatStyle = FlatStyle.Flat;
             btnDeleteLoan.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnDeleteLoan.ForeColor = Color.White;
-            btnDeleteLoan.Location = new Point(130, 285);
+            btnDeleteLoan.Location = new Point(130, 412);
             btnDeleteLoan.Name = "btnDeleteLoan";
             btnDeleteLoan.Size = new Size(92, 43);
             btnDeleteLoan.TabIndex = 14;
@@ -236,7 +318,7 @@
             btnCreateLoan.FlatStyle = FlatStyle.Flat;
             btnCreateLoan.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCreateLoan.ForeColor = Color.White;
-            btnCreateLoan.Location = new Point(17, 285);
+            btnCreateLoan.Location = new Point(17, 412);
             btnCreateLoan.Name = "btnCreateLoan";
             btnCreateLoan.Size = new Size(92, 43);
             btnCreateLoan.TabIndex = 13;
@@ -811,7 +893,7 @@
             btnExtendLoan.FlatStyle = FlatStyle.Flat;
             btnExtendLoan.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnExtendLoan.ForeColor = Color.White;
-            btnExtendLoan.Location = new Point(244, 285);
+            btnExtendLoan.Location = new Point(244, 412);
             btnExtendLoan.Name = "btnExtendLoan";
             btnExtendLoan.Size = new Size(92, 43);
             btnExtendLoan.TabIndex = 15;
@@ -919,5 +1001,12 @@
         private Label lblSach;
         private ComboBox cmbBookCondition;
         private Button btnExtendLoan;
+        private Label lblConditionBorrow;
+        private ComboBox cboTearLevel;
+        private CheckBox chkLost;
+        private CheckBox chkTorn;
+        private CheckBox chkWet;
+        private CheckBox chkDirty;
+        private CheckBox chkNew;
     }
 }

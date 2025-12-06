@@ -78,7 +78,8 @@ CREATE TABLE Sach (
     SoLuongTong INT DEFAULT 0,
     SoLuongCon INT DEFAULT 0,
     MaNXB INT,
-    MaTheLoai INT
+    MaTheLoai INT,
+    TinhTrangSach VARCHAR(200) DEFAULT 'Mới'
 );
 
 -- Bảng Sách - Tác giả (nhiều-nhiều)
@@ -129,6 +130,7 @@ CREATE TABLE ChiTietMuon (
     MaPhieuMuon INT,
     MaSach INT,
     SoLuong INT,
+    TinhTrangMuon VARCHAR(200),
     PRIMARY KEY (MaPhieuMuon, MaSach)
 );
 
@@ -139,6 +141,24 @@ CREATE TABLE PhieuTra (
     NgayTra DATE DEFAULT (CURRENT_DATE),
     TinhTrangSach VARCHAR(100),
     TienPhat DECIMAL(10,2) DEFAULT 0
+);
+
+-- Bảng Chi tiết trả cho phép cập nhật tình trạng từng cuốn khi trả
+CREATE TABLE ChiTietTra (
+    MaPhieuTra INT,
+    MaSach INT,
+    TinhTrangTra VARCHAR(200),
+    TienPhat DECIMAL(10,2) DEFAULT 0,
+    PRIMARY KEY (MaPhieuTra, MaSach)
+);
+
+-- Bảng Tham số phạt để cấu hình các mức xử lý hư hỏng
+CREATE TABLE ThamSoPhat (
+    MaThamSoPhat INT PRIMARY KEY AUTO_INCREMENT,
+    LoaiTinhTrang VARCHAR(50) NOT NULL,
+    MucDo VARCHAR(100),
+    MoTa TEXT,
+    SoTien DECIMAL(10,2) NOT NULL DEFAULT 0
 );
 
 -- Bảng Phiếu phạt
@@ -260,6 +280,14 @@ ALTER TABLE PhieuTra
 ADD CONSTRAINT FK_PhieuTra_PhieuMuon
 FOREIGN KEY (MaPhieuMuon) REFERENCES PhieuMuon(MaPhieuMuon);
 
+ALTER TABLE ChiTietTra
+ADD CONSTRAINT FK_ChiTietTra_PhieuTra
+FOREIGN KEY (MaPhieuTra) REFERENCES PhieuTra(MaPhieuTra);
+
+ALTER TABLE ChiTietTra
+ADD CONSTRAINT FK_ChiTietTra_Sach
+FOREIGN KEY (MaSach) REFERENCES Sach(MaSach);
+
 -- Khóa ngoại cho bảng PhieuPhat
 ALTER TABLE PhieuPhat
 ADD CONSTRAINT FK_PhieuPhat_DocGia
@@ -356,15 +384,15 @@ INSERT INTO TacGia (HoTen, NgaySinh, QuocTich) VALUES
 (N'Stephen Hawking', '1942-01-08', N'Anh');
 
 -- Thêm dữ liệu cho bảng Sach
-INSERT INTO Sach (TieuDe, ISBN, NamXuatBan, GiaSach, SoLuongTong, SoLuongCon, MaNXB, MaTheLoai) VALUES
-(N'Tôi thấy hoa vàng trên cỏ xanh', '978-604-2-08529-3', 2010, 89000, 15, 12, 1, 1),
-(N'Dế Mèn phiêu lưu ký', '978-604-2-13456-7', 2005, 65000, 20, 18, 2, 1),
-(N'Chí Phèo', '978-604-2-45678-9', 1941, 45000, 10, 8, 3, 1),
-(N'Kafka bên bờ biển', '978-604-2-78901-2', 2020, 125000, 8, 5, 1, 1),
-(N'Nhà giả kim', '978-604-2-34567-8', 2018, 95000, 12, 10, 4, 1),
-(N'Đắc nhân tâm', '978-604-2-56789-0', 2019, 78000, 25, 22, 4, 5),
-(N'Cha giàu cha nghèo', '978-604-2-67890-1', 2017, 110000, 18, 15, 4, 3),
-(N'Lược sử thời gian', '978-604-2-89012-3', 2016, 135000, 6, 4, 5, 2);
+INSERT INTO Sach (TieuDe, ISBN, NamXuatBan, GiaSach, SoLuongTong, SoLuongCon, MaNXB, MaTheLoai, TinhTrangSach) VALUES
+(N'Tôi thấy hoa vàng trên cỏ xanh', '978-604-2-08529-3', 2010, 89000, 15, 12, 1, 1, N'Mới'),
+(N'Dế Mèn phiêu lưu ký', '978-604-2-13456-7', 2005, 65000, 20, 18, 2, 1, N'Mới'),
+(N'Chí Phèo', '978-604-2-45678-9', 1941, 45000, 10, 8, 3, 1, N'Mới'),
+(N'Kafka bên bờ biển', '978-604-2-78901-2', 2020, 125000, 8, 5, 1, 1, N'Mới'),
+(N'Nhà giả kim', '978-604-2-34567-8', 2018, 95000, 12, 10, 4, 1, N'Mới'),
+(N'Đắc nhân tâm', '978-604-2-56789-0', 2019, 78000, 25, 22, 4, 5, N'Mới'),
+(N'Cha giàu cha nghèo', '978-604-2-67890-1', 2017, 110000, 18, 15, 4, 3, N'Mới'),
+(N'Lược sử thời gian', '978-604-2-89012-3', 2016, 135000, 6, 4, 5, 2, N'Mới');
 
 -- Thêm dữ liệu cho bảng Sach_TacGia
 INSERT INTO Sach_TacGia (MaSach, MaTacGia) VALUES
@@ -408,15 +436,30 @@ INSERT INTO PhieuMuon (MaDocGia, MaNhanVien, NgayMuon, HanTra, TrangThai) VALUES
 (1, 2, '2023-06-20', '2023-07-04', N'Đang mượn');
 
 -- Thêm dữ liệu cho bảng ChiTietMuon
-INSERT INTO ChiTietMuon (MaPhieuMuon, MaSach, SoLuong) VALUES
-(1, 1, 1), -- Phiếu mượn 1: Tôi thấy hoa vàng trên cỏ xanh
-(1, 6, 1), -- Phiếu mượn 1: Đắc nhân tâm
-(2, 2, 1), -- Phiếu mượn 2: Dế Mèn phiêu lưu ký
-(2, 5, 1), -- Phiếu mượn 2: Nhà giả kim
-(3, 4, 1), -- Phiếu mượn 3: Kafka bên bờ biển
-(4, 7, 1), -- Phiếu mượn 4: Cha giàu cha nghèo
-(4, 8, 1), -- Phiếu mượn 4: Lược sử thời gian
-(5, 3, 1); -- Phiếu mượn 5: Chí Phèo
+INSERT INTO ChiTietMuon (MaPhieuMuon, MaSach, SoLuong, TinhTrangMuon) VALUES
+(1, 1, 1, N'Mới'), -- Phiếu mượn 1: Tôi thấy hoa vàng trên cỏ xanh
+(1, 6, 1, N'Mới'), -- Phiếu mượn 1: Đắc nhân tâm
+(2, 2, 1, N'Mới'), -- Phiếu mượn 2: Dế Mèn phiêu lưu ký
+(2, 5, 1, N'Mới'), -- Phiếu mượn 2: Nhà giả kim
+(3, 4, 1, N'Mới'), -- Phiếu mượn 3: Kafka bên bờ biển
+(4, 7, 1, N'Mới'), -- Phiếu mượn 4: Cha giàu cha nghèo
+(4, 8, 1, N'Mới'), -- Phiếu mượn 4: Lược sử thời gian
+(5, 3, 1, N'Mới'); -- Phiếu mượn 5: Chí Phèo
+
+-- Thêm dữ liệu tham số phạt
+INSERT INTO ThamSoPhat (LoaiTinhTrang, MucDo, MoTa, SoTien) VALUES
+(N'Mới', NULL, N'Sách còn mới, không phạt', 0),
+(N'Bẩn', NULL, N'Sách bị bẩn, phạt cố định', 10000),
+(N'Ướt', NULL, N'Sách bị ướt, cần sấy và ép lại', 15000),
+(N'Rách', N'Dưới 3 trang', N'Rách nhẹ, dán lại được', 20000),
+(N'Rách', N'3 - 5 trang', N'Rách mức trung bình', 40000),
+(N'Rách', N'Trên 5 trang', N'Rách nặng, cân nhắc thay mới', 70000),
+(N'Mất', NULL, N'Mất sách, bồi hoàn toàn bộ', 200000);
+
+-- Thêm dữ liệu chi tiết trả mẫu
+INSERT INTO ChiTietTra (MaPhieuTra, MaSach, TinhTrangTra, TienPhat) VALUES
+(1, 1, N'Mới', 0),
+(2, 2, N'Mới', 0);
 
 -- Thêm dữ liệu cho bảng PhieuTra
 INSERT INTO PhieuTra (MaPhieuMuon, NgayTra, TinhTrangSach, TienPhat) VALUES

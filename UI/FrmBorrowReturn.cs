@@ -18,6 +18,7 @@ namespace UI
         private readonly LoanBUS loanBUS = LoanBUS.Instance;
         private readonly ReturnBUS returnBUS = new ReturnBUS();
         private readonly FineBUS fineBUS = new FineBUS();
+        private List<ThamSoPhatDTO> penaltyRules = new();
 
         public FrmBorrowReturn()
         {
@@ -26,13 +27,20 @@ namespace UI
             txtSearchLoan.KeyDown += TxtSearch_KeyDown;
             txtSearchLoanReturn.KeyDown += TxtSearch_KeyDown;
             txtSearchFine.KeyDown += TxtSearch_KeyDown;
+            chkNew.CheckedChanged += OnConditionChanged;
+            chkDirty.CheckedChanged += OnConditionChanged;
+            chkWet.CheckedChanged += OnConditionChanged;
+            chkTorn.CheckedChanged += OnConditionChanged;
+            chkLost.CheckedChanged += OnConditionChanged;
         }
         private void FrmBorrowReturn_Load(object sender, EventArgs e)
         {
             LoadComboBoxes();
+            LoadPenaltyRules();
             LoadLoanList();
             LoadReturnTab();
             LoadFineTab();
+            ResetConditionSelection();
         }
 
         //LOAD DỮ LIỆU
@@ -47,6 +55,121 @@ namespace UI
             cbBook.DataSource = books;
             cbBook.DisplayMember = "TieuDe";
             cbBook.ValueMember = "MaSach";
+        }
+
+        private void LoadPenaltyRules()
+        {
+            penaltyRules = ThamSoPhatBUS.Instance.GetAllRules();
+            var tearLevels = penaltyRules
+                .Where(r => r.LoaiTinhTrang.Equals("Rách", StringComparison.OrdinalIgnoreCase)
+                         && !string.IsNullOrWhiteSpace(r.MucDo))
+                .Select(r => r.MucDo!)
+                .Distinct()
+                .ToList();
+
+            cboTearLevel.Items.Clear();
+            foreach (var level in tearLevels)
+            {
+                cboTearLevel.Items.Add(level);
+            }
+
+            if (cboTearLevel.Items.Count > 0)
+            {
+                cboTearLevel.SelectedIndex = 0;
+            }
+        }
+
+        private void ResetConditionSelection()
+        {
+            chkNew.Checked = true;
+            chkDirty.Checked = false;
+            chkWet.Checked = false;
+            chkTorn.Checked = false;
+            chkLost.Checked = false;
+            if (cboTearLevel.Items.Count > 0)
+            {
+                cboTearLevel.SelectedIndex = 0;
+            }
+        }
+
+        private void OnConditionChanged(object? sender, EventArgs e)
+        {
+            if (chkNew.Checked)
+            {
+                chkDirty.Checked = false;
+                chkWet.Checked = false;
+                chkTorn.Checked = false;
+                chkLost.Checked = false;
+            }
+
+            if (chkLost.Checked)
+            {
+                chkNew.Checked = false;
+                chkDirty.Checked = false;
+                chkWet.Checked = false;
+                chkTorn.Checked = false;
+            }
+
+            if (chkDirty.Checked || chkWet.Checked || chkTorn.Checked)
+            {
+                chkNew.Checked = false;
+            }
+
+            if (chkDirty.Checked || chkWet.Checked || chkNew.Checked)
+            {
+                chkLost.Checked = false;
+            }
+        }
+
+        private string BuildConditionString()
+        {
+            if (chkLost.Checked)
+                return "Mất";
+            if (chkNew.Checked)
+                return "Mới";
+
+            var states = new List<string>();
+            if (chkDirty.Checked) states.Add("Bẩn");
+            if (chkWet.Checked) states.Add("Ướt");
+            if (chkTorn.Checked)
+            {
+                var level = cboTearLevel.SelectedItem?.ToString();
+                states.Add(string.IsNullOrWhiteSpace(level) ? "Rách" : $"Rách ({level})");
+            }
+
+            return states.Count == 0 ? "Mới" : string.Join(", ", states);
+        }
+
+        private void ApplyConditionFromDetail(string? condition)
+        {
+            ResetConditionSelection();
+            if (string.IsNullOrWhiteSpace(condition))
+                return;
+
+            if (condition.Contains("Mất", StringComparison.OrdinalIgnoreCase))
+            {
+                chkLost.Checked = true;
+                return;
+            }
+
+            chkNew.Checked = false;
+
+            chkDirty.Checked = condition.Contains("Bẩn", StringComparison.OrdinalIgnoreCase);
+            chkWet.Checked = condition.Contains("Ướt", StringComparison.OrdinalIgnoreCase);
+            chkTorn.Checked = condition.Contains("Rách", StringComparison.OrdinalIgnoreCase);
+
+            if (chkTorn.Checked)
+            {
+                var level = penaltyRules.FirstOrDefault(r =>
+                    r.LoaiTinhTrang.Equals("Rách", StringComparison.OrdinalIgnoreCase)
+                    && !string.IsNullOrWhiteSpace(r.MucDo)
+                    && condition.Contains(r.MucDo!, StringComparison.OrdinalIgnoreCase))?.MucDo;
+
+                if (!string.IsNullOrWhiteSpace(level))
+                {
+                    cboTearLevel.SelectedItem = level;
+                }
+            }
         }
 
         #region tab Borrow
@@ -86,6 +209,7 @@ namespace UI
             dtBorrowDate.Value = DateTime.Now;
             dtDueDate.Value = DateTime.Now.AddDays(7);
             dgvLoanList.DataSource = loanBUS.GetAllLoans();
+            ResetConditionSelection();
         }
 
         // CHỌN HÀNG TRONG DATAGRIDVIEW 
@@ -110,11 +234,13 @@ namespace UI
                     var first = loanDetails[0];
                     cbBook.SelectedValue = first.MaSach;
                     numQuantity.Value = first.SoLuong;
+                    ApplyConditionFromDetail(first.TinhTrangMuon);
                 }
                 else
                 {
                     cbBook.SelectedIndex = -1;
                     numQuantity.Value = 1;
+                    ResetConditionSelection();
                 }
             }
         }
@@ -142,7 +268,8 @@ namespace UI
                 var detail = new LoanDetailDTO
                 {
                     MaSach = Convert.ToInt32(cbBook.SelectedValue),
-                    SoLuong = (int)numQuantity.Value
+                    SoLuong = (int)numQuantity.Value,
+                    TinhTrangMuon = BuildConditionString()
                 };
 
                 string message;
@@ -152,7 +279,11 @@ namespace UI
                     success ? MessageBoxIcon.Information : MessageBoxIcon.Error);
 
                 if (success)
+                {
+                    BookBUS.UpdateBookCondition(detail.MaSach, detail.TinhTrangMuon);
                     LoadLoanList();
+                    ResetConditionSelection();
+                }
             }
             catch (Exception ex)
             {

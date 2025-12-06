@@ -24,14 +24,15 @@ namespace DAO
                 int maPhieuMuon = connection.ExecuteScalar<int>(insertLoanSql, loan, transaction);
 
                 const string insertDetailSql = @"
-                    INSERT INTO ChiTietMuon (MaPhieuMuon, MaSach, SoLuong)
-                    VALUES (@MaPhieuMuon, @MaSach, @SoLuong);";
+                    INSERT INTO ChiTietMuon (MaPhieuMuon, MaSach, SoLuong, TinhTrangMuon)
+                    VALUES (@MaPhieuMuon, @MaSach, @SoLuong, @TinhTrangMuon);";
 
                 var detailParams = details.Select(d => new
                 {
                     MaPhieuMuon = maPhieuMuon,
                     d.MaSach,
-                    d.SoLuong
+                    d.SoLuong,
+                    d.TinhTrangMuon
                 });
 
                 connection.Execute(insertDetailSql, detailParams, transaction);

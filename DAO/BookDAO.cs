@@ -29,7 +29,8 @@ namespace DAO
                     SoLuongTong = row["SoLuongTong"] == DBNull.Value ? 0 : Convert.ToInt32(row["SoLuongTong"]),
                     SoLuongCon = row["SoLuongCon"] == DBNull.Value ? 0 : Convert.ToInt32(row["SoLuongCon"]),
                     MaNXB = row["MaNXB"] == DBNull.Value ? 0 : Convert.ToInt32(row["MaNXB"]),
-                    MaTheLoai = row["MaTheLoai"] == DBNull.Value ? 0 : Convert.ToInt32(row["MaTheLoai"])
+                    MaTheLoai = row["MaTheLoai"] == DBNull.Value ? 0 : Convert.ToInt32(row["MaTheLoai"]),
+                    TinhTrangSach = row["TinhTrangSach"].ToString()
                 });
             }
 
@@ -42,8 +43,8 @@ namespace DAO
             try
             {
                 string query = @"
-                    INSERT INTO Sach (TieuDe, ISBN, NamXuatBan, GiaSach, SoLuongTong, SoLuongCon, MaNXB, MaTheLoai)
-                    VALUES (@TieuDe, @ISBN, @NamXuatBan, @GiaSach, @SoLuongTong, @SoLuongCon, @MaNXB, @MaTheLoai)";
+                    INSERT INTO Sach (TieuDe, ISBN, NamXuatBan, GiaSach, SoLuongTong, SoLuongCon, MaNXB, MaTheLoai, TinhTrangSach)
+                    VALUES (@TieuDe, @ISBN, @NamXuatBan, @GiaSach, @SoLuongTong, @SoLuongCon, @MaNXB, @MaTheLoai, @TinhTrangSach)";
 
                 int result = DataProvider.Instance.ExecuteNonQuery(query,
                     new MySqlParameter("@TieuDe", book.TieuDe),
@@ -53,7 +54,8 @@ namespace DAO
                     new MySqlParameter("@SoLuongTong", book.SoLuongTong),
                     new MySqlParameter("@SoLuongCon", book.SoLuongCon),
                     new MySqlParameter("@MaNXB", book.MaNXB),
-                    new MySqlParameter("@MaTheLoai", book.MaTheLoai)
+                    new MySqlParameter("@MaTheLoai", book.MaTheLoai),
+                    new MySqlParameter("@TinhTrangSach", book.TinhTrangSach ?? "Mới")
                 );
 
                 return result > 0;
@@ -79,7 +81,8 @@ namespace DAO
                         SoLuongTong = @SoLuongTong,
                         SoLuongCon = @SoLuongCon,
                         MaNXB = @MaNXB,
-                        MaTheLoai = @MaTheLoai
+                        MaTheLoai = @MaTheLoai,
+                        TinhTrangSach = @TinhTrangSach
                     WHERE MaSach = @MaSach";
 
                 int result = DataProvider.Instance.ExecuteNonQuery(query,
@@ -91,7 +94,8 @@ namespace DAO
                     new MySqlParameter("@SoLuongTong", book.SoLuongTong),
                     new MySqlParameter("@SoLuongCon", book.SoLuongCon),
                     new MySqlParameter("@MaNXB", book.MaNXB),
-                    new MySqlParameter("@MaTheLoai", book.MaTheLoai)
+                    new MySqlParameter("@MaTheLoai", book.MaTheLoai),
+                    new MySqlParameter("@TinhTrangSach", book.TinhTrangSach ?? "Mới")
                 );
 
                 return result > 0;
@@ -136,10 +140,20 @@ namespace DAO
                     MaSach = Convert.ToInt32(row["MaSach"]),
                     TieuDe = row["TieuDe"].ToString(),
                     //... (thêm các thuộc tính khác như TacGia, NamXuatBan... nếu bạn cần)
-                    GiaSach = Convert.ToDecimal(row["GiaSach"])
+                    GiaSach = Convert.ToDecimal(row["GiaSach"]),
+                    TinhTrangSach = row["TinhTrangSach"].ToString()
                 };
             }
             return null; // Trả về null nếu không tìm thấy
+        }
+
+        public static bool UpdateBookCondition(int maSach, string? tinhTrang)
+        {
+            string query = "UPDATE Sach SET TinhTrangSach = @TinhTrangSach WHERE MaSach = @MaSach";
+            int result = DataProvider.Instance.ExecuteNonQuery(query,
+                new MySqlParameter("@TinhTrangSach", tinhTrang ?? "Mới"),
+                new MySqlParameter("@MaSach", maSach));
+            return result > 0;
         }
     }
 }
